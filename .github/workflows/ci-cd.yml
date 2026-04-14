@@ -27,13 +27,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          # We only enable caching if the lock file exists to avoid the "lock file not found" error
+          cache: ${{ hashFiles('package-lock.json') != '' && 'npm' || '' }}
 
       - name: Install Dependencies
         run: |
           if [ -f package-lock.json ]; then
+            echo "Lock file found. Running npm ci..."
             npm ci
           else
+            echo "Lock file NOT found. Running npm install..."
             npm install
           fi
 
