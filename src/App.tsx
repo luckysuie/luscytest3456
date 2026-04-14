@@ -24,7 +24,8 @@ import {
   MapPin,
   Phone,
   Hash,
-  Globe
+  Globe,
+  Cpu
 } from 'lucide-react';
 
 // Import mock database and types
@@ -255,10 +256,16 @@ export default function App() {
                             <span>City</span>
                           </div>
                         </th>
-                        <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider pr-2">
+                        <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider">
                           <div className="flex items-center space-x-1">
                             <Globe size={12} />
                             <span>Country</span>
+                          </div>
+                        </th>
+                        <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider pr-2">
+                          <div className="flex items-center space-x-1">
+                            <Cpu size={12} />
+                            <span>Technology</span>
                           </div>
                         </th>
                       </tr>
@@ -285,8 +292,13 @@ export default function App() {
                           <td className="py-4 text-slate-600 text-sm">
                             {student.city}
                           </td>
-                          <td className="py-4 text-slate-600 text-sm pr-2">
+                          <td className="py-4 text-slate-600 text-sm">
                             {student.country}
+                          </td>
+                          <td className="py-4 text-slate-600 text-sm pr-2">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              {student.technology}
+                            </span>
                           </td>
                         </motion.tr>
                       ))}

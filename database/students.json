@@ -4,34 +4,39 @@
     "name": "Alice Johnson",
     "phone": "+1-555-0101",
     "city": "New York",
-    "country": "USA"
+    "country": "USA",
+    "technology": "Azure"
   },
   {
     "id": "STU002",
     "name": "Bob Smith",
     "phone": "+1-555-0102",
     "city": "Los Angeles",
-    "country": "USA"
+    "country": "USA",
+    "technology": "AWS"
   },
   {
     "id": "STU003",
     "name": "Charlie Davis",
     "phone": "+1-555-0103",
     "city": "Chicago",
-    "country": "USA"
+    "country": "USA",
+    "technology": "React"
   },
   {
     "id": "STU004",
     "name": "Diana Prince",
     "phone": "+1-555-0104",
     "city": "Houston",
-    "country": "USA"
+    "country": "USA",
+    "technology": "DevOps"
   },
   {
     "id": "STU005",
     "name": "Ethan Hunt",
     "phone": "+1-555-0105",
     "city": "Phoenix",
-    "country": "USA"
+    "country": "USA",
+    "technology": "Python"
   }
 ]

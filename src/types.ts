@@ -4,6 +4,7 @@ export interface Student {
   phone: string;
   city: string;
   country: string;
+  technology: string;
 }
 
 export interface User {
