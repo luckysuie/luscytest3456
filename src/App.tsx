@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   User as UserIcon, 
@@ -17,7 +17,6 @@ import {
   EyeOff, 
   ArrowRight, 
   GraduationCap,
-  CheckCircle2,
   BookOpen,
   LogOut,
   Search,
@@ -26,11 +25,12 @@ import {
   Hash,
   Globe,
   Cpu,
-  Heart
+  Heart,
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 
-// Import mock database and types
-import studentsData from '../database/students.json';
+// Import types
 import { Student, User } from './types';
 
 export default function App() {
@@ -41,13 +41,46 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [error, setError] = useState('');
 
+  // Candidate Data State
+  const [students, setStudents] = useState<Student[]>([]);
+  const [isDataLoading, setIsDataLoading] = useState(false);
+  const [dataError, setDataError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const fetchStudents = async () => {
+    setIsDataLoading(true);
+    setDataError('');
+    try {
+      const response = await fetch('https://luckyapp-hfeveee8ekdyhsd5.eastus-01.azurewebsites.net/api/getCandidates');
+      if (!response.ok) throw new Error('Failed to fetch candidate data from Azure');
+      
+      const result = await response.json();
+      if (result.success) {
+        setStudents(result.data);
+      } else {
+        throw new Error('API returned an unsuccessful status');
+      }
+    } catch (err) {
+      setDataError(err instanceof Error ? err.message : 'An unexpected error occurred while fetching data');
+      console.error('Fetch error:', err);
+    } finally {
+      setIsDataLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchStudents();
+    }
+  }, [currentUser]);
+
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Simulate API call for login
+    await new Promise(resolve => setTimeout(resolve, 800));
     
     // Default credentials check
     if (studentId === 'studentadmin' && password === 'admin123') {
@@ -63,7 +96,15 @@ export default function App() {
     setCurrentUser(null);
     setStudentId('');
     setPassword('');
+    setStudents([]);
   };
+
+  const filteredStudents = students.filter(student => 
+    student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.technology.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.id.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-[#f0f4f8] flex items-center justify-center p-4 font-sans selection:bg-blue-100 selection:text-blue-700">
@@ -202,13 +243,23 @@ export default function App() {
                     <p className="text-slate-400 text-sm">Welcome back, {currentUser.username}</p>
                   </div>
                 </div>
-                <button 
-                  onClick={handleLogout}
-                  className="flex items-center justify-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm font-semibold"
-                >
-                  <LogOut size={16} />
-                  <span>Logout</span>
-                </button>
+                <div className="flex items-center space-x-3">
+                  <button 
+                    onClick={fetchStudents}
+                    disabled={isDataLoading}
+                    className="flex items-center justify-center p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white disabled:opacity-50"
+                    title="Refresh Data"
+                  >
+                    <RefreshCw size={18} className={isDataLoading ? "animate-spin" : ""} />
+                  </button>
+                  <button 
+                    onClick={handleLogout}
+                    className="flex items-center justify-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm font-semibold"
+                  >
+                    <LogOut size={16} />
+                    <span>Logout</span>
+                  </button>
+                </div>
               </div>
 
               {/* Dashboard Content */}
@@ -216,105 +267,139 @@ export default function App() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                   <div>
                     <h3 className="text-lg font-bold text-slate-900">Student Records</h3>
-                    <p className="text-slate-500 text-sm">Managing {studentsData.length} total students</p>
+                    <p className="text-slate-500 text-sm">
+                      {isDataLoading ? "Fetching records..." : `Managing ${filteredStudents.length} total students`}
+                    </p>
                   </div>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                     <input 
                       type="text" 
                       placeholder="Search students..." 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all w-full md:w-64"
                     />
                   </div>
                 </div>
 
-                {/* Student Table */}
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-slate-100">
-                        <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider pl-2">
-                          <div className="flex items-center space-x-1">
-                            <Hash size={12} />
-                            <span>ID</span>
-                          </div>
-                        </th>
-                        <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider">
-                          <div className="flex items-center space-x-1">
-                            <UserIcon size={12} />
-                            <span>Name</span>
-                          </div>
-                        </th>
-                        <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider">
-                          <div className="flex items-center space-x-1">
-                            <Heart size={12} />
-                            <span>Mother Name</span>
-                          </div>
-                        </th>
-                        <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider">
-                          <div className="flex items-center space-x-1">
-                            <Phone size={12} />
-                            <span>Phone</span>
-                          </div>
-                        </th>
-                        <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider">
-                          <div className="flex items-center space-x-1">
-                            <MapPin size={12} />
-                            <span>City</span>
-                          </div>
-                        </th>
-                        <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider">
-                          <div className="flex items-center space-x-1">
-                            <Globe size={12} />
-                            <span>Country</span>
-                          </div>
-                        </th>
-                        <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider pr-2">
-                          <div className="flex items-center space-x-1">
-                            <Cpu size={12} />
-                            <span>Technology</span>
-                          </div>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50">
-                      {(studentsData as Student[]).map((student) => (
-                        <motion.tr 
-                          key={student.id}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="group hover:bg-slate-50/50 transition-colors"
-                        >
-                          <td className="py-4 pl-2">
-                            <span className="text-xs font-mono font-medium text-slate-400 bg-slate-100 px-2 py-1 rounded">
-                              {student.id}
-                            </span>
-                          </td>
-                          <td className="py-4">
-                            <span className="font-semibold text-slate-900">{student.name}</span>
-                          </td>
-                          <td className="py-4 text-slate-600 text-sm">
-                            {student.motherName}
-                          </td>
-                          <td className="py-4 text-slate-600 text-sm">
-                            {student.phone}
-                          </td>
-                          <td className="py-4 text-slate-600 text-sm">
-                            {student.city}
-                          </td>
-                          <td className="py-4 text-slate-600 text-sm">
-                            {student.country}
-                          </td>
-                          <td className="py-4 text-slate-600 text-sm pr-2">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              {student.technology}
-                            </span>
-                          </td>
-                        </motion.tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                {/* Data States */}
+                {dataError ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+                      <AlertCircle size={32} />
+                    </div>
+                    <h4 className="text-lg font-bold text-slate-900">Failed to load data</h4>
+                    <p className="text-slate-500 max-w-xs mt-2 mb-6">{dataError}</p>
+                    <button 
+                      onClick={fetchStudents}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                ) : isDataLoading && students.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-4" />
+                    <p className="text-slate-500 font-medium">Loading candidate records...</p>
+                  </div>
+                ) : filteredStudents.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mb-4">
+                      <Search size={32} />
+                    </div>
+                    <h4 className="text-lg font-bold text-slate-900">No students found</h4>
+                    <p className="text-slate-500 mt-2">Try adjusting your search query or refresh the data.</p>
+                  </div>
+                ) : (
+                  /* Student Table */
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-100">
+                          <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider pl-2">
+                            <div className="flex items-center space-x-1">
+                              <Hash size={12} />
+                              <span>ID</span>
+                            </div>
+                          </th>
+                          <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider">
+                            <div className="flex items-center space-x-1">
+                              <UserIcon size={12} />
+                              <span>Name</span>
+                            </div>
+                          </th>
+                          <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider">
+                            <div className="flex items-center space-x-1">
+                              <Heart size={12} />
+                              <span>Mother Name</span>
+                            </div>
+                          </th>
+                          <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider">
+                            <div className="flex items-center space-x-1">
+                              <Phone size={12} />
+                              <span>Phone</span>
+                            </div>
+                          </th>
+                          <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider">
+                            <div className="flex items-center space-x-1">
+                              <MapPin size={12} />
+                              <span>City</span>
+                            </div>
+                          </th>
+                          <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider">
+                            <div className="flex items-center space-x-1">
+                              <Globe size={12} />
+                              <span>Country</span>
+                            </div>
+                          </th>
+                          <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider pr-2">
+                            <div className="flex items-center space-x-1">
+                              <Cpu size={12} />
+                              <span>Technology</span>
+                            </div>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50">
+                        {filteredStudents.map((student) => (
+                          <motion.tr 
+                            key={student.id}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="group hover:bg-slate-50/50 transition-colors"
+                          >
+                            <td className="py-4 pl-2">
+                              <span className="text-xs font-mono font-medium text-slate-400 bg-slate-100 px-2 py-1 rounded">
+                                {student.id}
+                              </span>
+                            </td>
+                            <td className="py-4">
+                              <span className="font-semibold text-slate-900">{student.name}</span>
+                            </td>
+                            <td className="py-4 text-slate-600 text-sm">
+                              {student.motherName}
+                            </td>
+                            <td className="py-4 text-slate-600 text-sm">
+                              {student.phone}
+                            </td>
+                            <td className="py-4 text-slate-600 text-sm">
+                              {student.city}
+                            </td>
+                            <td className="py-4 text-slate-600 text-sm">
+                              {student.country}
+                            </td>
+                            <td className="py-4 text-slate-600 text-sm pr-2">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {student.technology}
+                              </span>
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
