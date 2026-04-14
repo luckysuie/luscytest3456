@@ -3,6 +3,7 @@ export interface Student {
   name: string;
   phone: string;
   city: string;
+  country: string;
 }
 
 export interface User {

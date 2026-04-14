@@ -23,7 +23,8 @@ import {
   Search,
   MapPin,
   Phone,
-  Hash
+  Hash,
+  Globe
 } from 'lucide-react';
 
 // Import mock database and types
@@ -248,10 +249,16 @@ export default function App() {
                             <span>Phone</span>
                           </div>
                         </th>
-                        <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider pr-2">
+                        <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider">
                           <div className="flex items-center space-x-1">
                             <MapPin size={12} />
                             <span>City</span>
+                          </div>
+                        </th>
+                        <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider pr-2">
+                          <div className="flex items-center space-x-1">
+                            <Globe size={12} />
+                            <span>Country</span>
                           </div>
                         </th>
                       </tr>
@@ -275,8 +282,11 @@ export default function App() {
                           <td className="py-4 text-slate-600 text-sm">
                             {student.phone}
                           </td>
-                          <td className="py-4 text-slate-600 text-sm pr-2">
+                          <td className="py-4 text-slate-600 text-sm">
                             {student.city}
+                          </td>
+                          <td className="py-4 text-slate-600 text-sm pr-2">
+                            {student.country}
                           </td>
                         </motion.tr>
                       ))}
