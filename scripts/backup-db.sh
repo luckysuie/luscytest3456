@@ -1,40 +1,71 @@
 #!/bin/bash
 
 # backup-db.sh
-# Purpose: Perform a database backup based on the detected engine.
-# This is a placeholder script that should be customized for your specific DB.
+# Purpose: Perform a database backup. 
+# For mock testing, it copies DB-related files into a timestamped artifact.
 
-BACKUP_DIR="backups"
+# Inputs from environment or arguments
+BRANCH_NAME=${1:-"unknown"}
+COMMIT_SHA=${2:-"unknown"}
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-mkdir -p $BACKUP_DIR
 
-echo "Starting database backup process..."
+# Define the backup directory name
+# Format: backup_YYYYMMDD_HHMMSS_BRANCH_SHA
+BACKUP_NAME="backup_${TIMESTAMP}_${BRANCH_NAME}_${COMMIT_SHA:0:7}"
+BACKUP_DIR="backups/$BACKUP_NAME"
 
-# --- CUSTOMIZABLE PLACEHOLDERS ---
+echo "--------------------------------------------------"
+echo "📦 STARTING MOCK DATABASE BACKUP"
+echo "--------------------------------------------------"
+echo "Timestamp: $TIMESTAMP"
+echo "Branch:    $BRANCH_NAME"
+echo "SHA:       $COMMIT_SHA"
+echo "Target:    $BACKUP_DIR"
 
-# 1. PostgreSQL Placeholder
-# echo "Backing up PostgreSQL..."
-# pg_dump -h $DB_HOST -U $DB_USER $DB_NAME > $BACKUP_DIR/db_backup_$TIMESTAMP.sql
+# Create the backup directory
+mkdir -p "$BACKUP_DIR"
 
-# 2. MySQL / MariaDB Placeholder
-# echo "Backing up MySQL..."
-# mysqldump -h $DB_HOST -U $DB_USER -p$DB_PASSWORD $DB_NAME > $BACKUP_DIR/db_backup_$TIMESTAMP.sql
+# Define directories and files to include in the backup
+DB_PATHS=(
+    "db"
+    "migrations"
+    "prisma"
+    "schema"
+    "sql"
+    "database"
+)
 
-# 3. MongoDB Placeholder
-# echo "Backing up MongoDB..."
-# mongodump --uri=$MONGO_URI --out=$BACKUP_DIR/mongo_backup_$TIMESTAMP
+# Copy each path if it exists
+for path in "${DB_PATHS[@]}"; do
+    if [ -d "$path" ]; then
+        echo "  -> Copying directory: $path"
+        cp -r "$path" "$BACKUP_DIR/"
+    elif [ -f "$path" ]; then
+        echo "  -> Copying file: $path"
+        cp "$path" "$BACKUP_DIR/"
+    fi
+done
 
-# 4. Generic SQL File Backup (if using local SQLite or similar)
-# If you just want to backup the .sql files themselves
-# cp -r sql/ $BACKUP_DIR/sql_files_$TIMESTAMP/
+# Also copy any .sql files in the root (if any)
+find . -maxdepth 1 -name "*.sql" -exec cp {} "$BACKUP_DIR/" \;
 
-# --- END OF PLACEHOLDERS ---
+# Create a metadata file
+cat <<EOF > "$BACKUP_DIR/metadata.json"
+{
+  "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+  "branch": "$BRANCH_NAME",
+  "commit_sha": "$COMMIT_SHA",
+  "backup_type": "mock_filesystem_copy"
+}
+EOF
 
-# For demonstration, we'll create a dummy backup file if no real command is run
-if [ ! -f "$BACKUP_DIR/db_backup_$TIMESTAMP.sql" ]; then
-    echo "Creating placeholder backup file for demonstration..."
-    echo "Backup generated at $TIMESTAMP" > "$BACKUP_DIR/placeholder_backup_$TIMESTAMP.txt"
+echo "--------------------------------------------------"
+echo "✅ Backup completed successfully."
+echo "Backup Location: $BACKUP_DIR"
+echo "--------------------------------------------------"
+
+# Output the backup directory for GitHub Actions
+if [ -n "$GITHUB_OUTPUT" ]; then
+    echo "backup_dir=$BACKUP_DIR" >> "$GITHUB_OUTPUT"
+    echo "backup_name=$BACKUP_NAME" >> "$GITHUB_OUTPUT"
 fi
-
-echo "Backup completed successfully."
-echo "backup_file=$BACKUP_DIR" >> $GITHUB_OUTPUT

@@ -65,10 +65,13 @@ jobs:
     name: Database Protection
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Run on push to main OR on pull request to main
+    if: (github.event_name == 'push' || github.event_name == 'pull_request') && (github.ref == 'refs/heads/main' || github.base_ref == 'main')
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for reliable git diff
 
       - name: Azure Login
         uses: azure/login@v2
@@ -85,29 +88,35 @@ jobs:
         id: detect
         run: |
           chmod +x scripts/detect-db-changes.sh
-          if ./scripts/detect-db-changes.sh; then
+          
+          # Determine SHAs based on event type
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            BEFORE_SHA="${{ github.event.pull_request.base.sha }}"
+            AFTER_SHA="${{ github.event.pull_request.head.sha }}"
+          else
+            BEFORE_SHA="${{ github.event.before }}"
+            AFTER_SHA="${{ github.sha }}"
+          fi
+          
+          if ./scripts/detect-db-changes.sh "$BEFORE_SHA" "$AFTER_SHA" "${{ github.event_name }}"; then
             echo "db_changed=true" >> $GITHUB_OUTPUT
           else
             echo "db_changed=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Backup Database
+      - name: Backup Database (Mock Mode)
         if: steps.detect.outputs.db_changed == 'true'
         id: backup
         run: |
           chmod +x scripts/backup-db.sh
-          ./scripts/backup-db.sh
-        env:
-          # Pass any DB connection strings here as secrets
-          # DB_HOST: ${{ secrets.DB_HOST }}
-          GITHUB_OUTPUT: $GITHUB_OUTPUT
+          ./scripts/backup-db.sh "${{ github.ref_name }}" "${{ github.sha }}"
 
       - name: Upload Backup to Azure Blob
         if: steps.detect.outputs.db_changed == 'true'
         run: |
           chmod +x scripts/upload-to-blob.sh
           ./scripts/upload-to-blob.sh \
-            "backups" \
+            "${{ steps.backup.outputs.backup_dir }}" \
             "${{ secrets.AZURE_STORAGE_ACCOUNT }}" \
             "${{ secrets.AZURE_STORAGE_KEY }}" \
             "${{ secrets.BLOB_CONTAINER_NAME }}"
