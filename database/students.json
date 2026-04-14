@@ -1,0 +1,32 @@
+[
+  {
+    "id": "STU001",
+    "name": "Alice Johnson",
+    "phone": "+1-555-0101",
+    "city": "New York"
+  },
+  {
+    "id": "STU002",
+    "name": "Bob Smith",
+    "phone": "+1-555-0102",
+    "city": "Los Angeles"
+  },
+  {
+    "id": "STU003",
+    "name": "Charlie Davis",
+    "phone": "+1-555-0103",
+    "city": "Chicago"
+  },
+  {
+    "id": "STU004",
+    "name": "Diana Prince",
+    "phone": "+1-555-0104",
+    "city": "Houston"
+  },
+  {
+    "id": "STU005",
+    "name": "Ethan Hunt",
+    "phone": "+1-555-0105",
+    "city": "Phoenix"
+  }
+]
