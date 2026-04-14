@@ -5,6 +5,7 @@ export interface Student {
   city: string;
   country: string;
   technology: string;
+  motherName: string;
 }
 
 export interface User {

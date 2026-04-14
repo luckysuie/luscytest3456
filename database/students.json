@@ -5,7 +5,8 @@
     "phone": "+1-555-0101",
     "city": "New York",
     "country": "USA",
-    "technology": "Azure"
+    "technology": "Azure",
+    "motherName": "Mary Johnson"
   },
   {
     "id": "STU002",
@@ -13,7 +14,8 @@
     "phone": "+1-555-0102",
     "city": "Los Angeles",
     "country": "USA",
-    "technology": "AWS"
+    "technology": "AWS",
+    "motherName": "Susan Smith"
   },
   {
     "id": "STU003",
@@ -21,7 +23,8 @@
     "phone": "+1-555-0103",
     "city": "Chicago",
     "country": "USA",
-    "technology": "React"
+    "technology": "React",
+    "motherName": "Linda Davis"
   },
   {
     "id": "STU004",
@@ -29,7 +32,8 @@
     "phone": "+1-555-0104",
     "city": "Houston",
     "country": "USA",
-    "technology": "DevOps"
+    "technology": "DevOps",
+    "motherName": "Hippolyta Prince"
   },
   {
     "id": "STU005",
@@ -37,6 +41,7 @@
     "phone": "+1-555-0105",
     "city": "Phoenix",
     "country": "USA",
-    "technology": "Python"
+    "technology": "Python",
+    "motherName": "Sarah Hunt"
   }
 ]

@@ -25,7 +25,8 @@ import {
   Phone,
   Hash,
   Globe,
-  Cpu
+  Cpu,
+  Heart
 } from 'lucide-react';
 
 // Import mock database and types
@@ -187,7 +188,7 @@ export default function App() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="w-full max-w-5xl relative"
+            className="w-full max-w-6xl relative"
           >
             <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
               {/* Dashboard Header */}
@@ -246,6 +247,12 @@ export default function App() {
                         </th>
                         <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider">
                           <div className="flex items-center space-x-1">
+                            <Heart size={12} />
+                            <span>Mother Name</span>
+                          </div>
+                        </th>
+                        <th className="pb-4 font-semibold text-slate-400 text-xs uppercase tracking-wider">
+                          <div className="flex items-center space-x-1">
                             <Phone size={12} />
                             <span>Phone</span>
                           </div>
@@ -285,6 +292,9 @@ export default function App() {
                           </td>
                           <td className="py-4">
                             <span className="font-semibold text-slate-900">{student.name}</span>
+                          </td>
+                          <td className="py-4 text-slate-600 text-sm">
+                            {student.motherName}
                           </td>
                           <td className="py-4 text-slate-600 text-sm">
                             {student.phone}
